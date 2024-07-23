@@ -5,8 +5,9 @@ use rand::prelude::*;
 const WINDOW_WIDTH : i32 = 640;
 const WINDOW_HEIGHT : i32 = 480;
 const WINDOW_CENTER : Vector2 = Vector2::new((WINDOW_WIDTH/2) as f32, (WINDOW_HEIGHT/2) as f32);
-const STARS_AMOUNT : u32 = 600;
+const STARS_AMOUNT : u32 = 800;
 const STAR_MAX_SIZE : f32 = 12.;
+const SIMULATION_SPEED : i32 = 50;
 
 
 fn main() {
@@ -34,7 +35,8 @@ fn main() {
 
             for star in stars.iter_mut(){
                 star.change_pos();
-                d.draw_circle(star.x_cur, star.y_cur, star.radius, Color::BLACK);
+                //d.draw_circle(star.x_speed, star.y_speed, star.radius, Color::BLACK);
+                d.draw_line(star.x_prev, star.y_prev, star.x_speed, star.y_speed, Color::BLACK);
             }
 
         }
@@ -44,39 +46,62 @@ fn main() {
 }
 
 struct Star{
-    x_init : i32,
-    y_init : i32,
-    z_init : i32,
-    x_cur : i32,
-    y_cur : i32,
+    x : i32,
+    y : i32,
+    z : i32,
+
+    x_speed : i32,
+    y_speed : i32,
+
+    x_prev : i32,
+    y_prev : i32,
+    z_prev : i32,
+
+
     radius : f32,
+    
 }
 
 impl Star{
     pub fn new() -> Self{
         Self {
-            x_init : thread_rng().gen_range(-WINDOW_WIDTH..WINDOW_WIDTH), 
-            y_init: thread_rng().gen_range(-WINDOW_HEIGHT..WINDOW_HEIGHT), 
-            z_init: thread_rng().gen_range(0..WINDOW_WIDTH), 
-            x_cur: 0,
-            y_cur : 0,
+            x : thread_rng().gen_range(-WINDOW_WIDTH..WINDOW_WIDTH), 
+            y: thread_rng().gen_range(-WINDOW_HEIGHT..WINDOW_HEIGHT), 
+            z: thread_rng().gen_range(0..WINDOW_WIDTH), 
+
+            x_speed: 0,
+            y_speed : 0,
+
+            x_prev : 0,
+            y_prev : 0,
+            z_prev : 0,
+
             radius : 0.,
+
         }
     }
 
     pub fn change_pos(&mut self){
-        self.z_init -= 10;
-        if self.z_init < 1{
-            self.z_init = WINDOW_WIDTH;
-            self.x_init = thread_rng().gen_range(-WINDOW_WIDTH..WINDOW_WIDTH);
-            self.y_init = thread_rng().gen_range(-WINDOW_HEIGHT..WINDOW_HEIGHT);
+        self.z -= SIMULATION_SPEED;
+        if self.z < 1{
+            self.z = WINDOW_WIDTH;
+            self.x = thread_rng().gen_range(-WINDOW_WIDTH..WINDOW_WIDTH);
+            self.y = thread_rng().gen_range(-WINDOW_HEIGHT..WINDOW_HEIGHT);
+
+            self.z_prev = self.z;
+
         }
 
         // mapping radius from 16 to 0 depending on how far the star is;
-        self.radius = STAR_MAX_SIZE - self.z_init as f32 * STAR_MAX_SIZE /WINDOW_WIDTH as f32;
+        self.radius = STAR_MAX_SIZE - self.z as f32 * STAR_MAX_SIZE /WINDOW_WIDTH as f32;
 
-        self.x_cur = map_star_speed(self.x_init as f32 / self.z_init as f32, WINDOW_WIDTH as f32);
-        self.y_cur = map_star_speed(self.y_init as f32 / self.z_init as f32, WINDOW_HEIGHT as f32);
+        self.x_speed = map_star_speed(self.x as f32 / self.z as f32, WINDOW_WIDTH as f32);
+        self.y_speed = map_star_speed(self.y as f32 / self.z as f32, WINDOW_HEIGHT as f32);
+
+        self.x_prev = map_star_speed(self.x as f32 / self.z_prev as f32, WINDOW_WIDTH as f32);
+        self.y_prev = map_star_speed(self.y as f32 / self.z_prev as f32, WINDOW_HEIGHT as f32);
+        self.z_prev = self.z;
+        
     }
 }
 
