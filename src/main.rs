@@ -17,6 +17,7 @@ fn main() {
         .build();
     rl.set_target_fps(60);
 
+    
     let camera2D = Camera2D{target: Vector2::zero(), offset: WINDOW_CENTER, rotation : 0., zoom : 1.};
 
     let mut background_color : Color = Color{r:255, g: 255, b: 255, a: 255};
@@ -34,12 +35,12 @@ fn main() {
 
         // Calculating the simulation speed depending on mouse X position within the window frame, 
         // where higher mouse x coordinates give faster speed 
-        simulation_speed = (mouse_pos_vec.x / WINDOW_WIDTH as f32 * MAX_SIMULATION_SPEED) as i32;
+        simulation_speed = map_val_to_frame_axis_len(mouse_pos_vec.x, WINDOW_WIDTH as f32, MAX_SIMULATION_SPEED);
 
 
         // Calculating the background color rgb channels value depending on mouse Y position within the window frame,
         // where higher mouse Y coordinates give brighter overall color 
-        let bg_color_channels : u8 =  (mouse_pos_vec.y as f32 / WINDOW_HEIGHT as f32 * 255.) as u8;
+        let bg_color_channels : u8 = map_val_to_frame_axis_len(mouse_pos_vec.y, WINDOW_HEIGHT as f32, 255.) as u8;
         background_color = Color{r: bg_color_channels, g : bg_color_channels, b : bg_color_channels, a : 255};
 
         // Inverting background rgb channels value for stars in order to create a contrast and to be able to see stars
@@ -62,7 +63,6 @@ fn main() {
             }
 
         }
-
 
     }
 }
@@ -114,20 +114,23 @@ impl Star{
 
         }
 
-        // mapping radius from 16 to 0 depending on how far the star is;
+        // mapping radius from 16 to 0 depending on how far the star is 
+        // *uses different appoach than helper map function*
         self.radius = STAR_MAX_SIZE - self.z as f32 * STAR_MAX_SIZE /WINDOW_WIDTH as f32;
 
-        self.x_speed = map_star_speed(self.x as f32 / self.z as f32, WINDOW_WIDTH as f32);
-        self.y_speed = map_star_speed(self.y as f32 / self.z as f32, WINDOW_HEIGHT as f32);
+        self.x_speed = map_val_to_frame_axis_len(self.x as f32, self.z as f32, WINDOW_WIDTH as f32);
+        self.y_speed = map_val_to_frame_axis_len(self.y as f32, self.z as f32, WINDOW_HEIGHT as f32);
 
-        self.x_prev = map_star_speed(self.x as f32 / self.z_prev as f32, WINDOW_WIDTH as f32);
-        self.y_prev = map_star_speed(self.y as f32 / self.z_prev as f32, WINDOW_HEIGHT as f32);
+        self.x_prev = map_val_to_frame_axis_len(self.x as f32, self.z_prev as f32, WINDOW_WIDTH as f32);
+        self.y_prev = map_val_to_frame_axis_len(self.y as f32, self.z_prev as f32, WINDOW_HEIGHT as f32);
         self.z_prev = self.z;
         
     }
 }
 
-pub fn map_star_speed(star_screen_ratio : f32, boundary : f32) -> i32{
+// Helper function
+// maps value depending on an axis coordinate distance to the axis length
+pub fn map_val_to_frame_axis_len(coord_on_axis : f32, axis_len : f32, max_output : f32) -> i32{
     // (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-    (star_screen_ratio * boundary) as i32
+    (coord_on_axis / axis_len * max_output) as i32
 }
